@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Login Page</title>
+  <style>
+    body { font-family: Arial, sans-serif; }
+    #mlflowUI { margin-top: 20px; }
+    .hidden { display: none; }
+  </style>
+</head>
+<body>
+  <h2>Please Login</h2>
+  <form id="loginForm">
+    <label>
+      Username:
+      <input type="text" name="username" required />
+    </label>
+    <br /><br />
+    <label>
+      Password:
+      <input type="password" name="password" required />
+    </label>
+    <br /><br />
+    <button type="submit">Login</button>
+  </form>
+  
+  <div id="errorMessage" style="color: red;"></div>
+
+  <!-- This container will hold the mlflow UI once logged in -->
+  <div id="mlflowUI" class="hidden">
+    <h2>MLflow UI</h2>
+    <iframe id="mlflowFrame" width="100%" height="600" frameborder="0"></iframe>
+  </div>
+
+  <script>
+    document.getElementById('loginForm').addEventListener('submit', function(event) {
+      event.preventDefault();
+      
+      // Grab user input
+      const username = event.target.username.value;
+      const password = event.target.password.value;
+
+      // Send credentials to the backend login API
+      fetch('/api/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password })
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.success) {
+          // Hide login form and any previous error message
+          document.getElementById('loginForm').classList.add('hidden');
+          document.getElementById('errorMessage').innerText = '';
+
+          // Display the mlflow UI (the mlflow URL is provided by the backend)
+          document.getElementById('mlflowFrame').src = data.mlflow_url;
+          document.getElementById('mlflowUI').classList.remove('hidden');
+        } else {
+          // Show error message if login fails
+          document.getElementById('errorMessage').innerText = data.message || 'Login failed. Please try again.';
+        }
+      })
+      .catch(err => {
+        console.error('Error during login:', err);
+        document.getElementById('errorMessage').innerText = 'An error occurred. Please try again later.';
+      });
+    });
+  </script>
+</body>
+</html>
